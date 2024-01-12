@@ -1009,76 +1009,52 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 </html>
 ```
-КОДЕ
-```JavaScript
-const express = require('express');
-const QRCode = require('qrcode');
-const app = express();
+CAPTCHA.PHP
+```Php
+<?php
+session_start(); // Старт сессии
+function generateCaptchaText($length = 6) {
+    $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; // доступные символы
+    $captchaText = '';
+    
+    for ($i = 0; $i < $length; $i++) {
+        $captchaText .= $chars[rand(0, strlen($chars) - 1)];
+    }
+    
+    return $captchaText;
+}
 
-app.get('/generate', async (req, res) => {
-  const url = req.query.url;
+// Создание изображения
+$image = imagecreatetruecolor(120, 40);
 
-  if (!url) {
-    return res.status(400).send('URL не указан.');
-  }
-//QRCode.toDataURL() для генерации QR-кода на основе переданного URL. 
-try {
-  const qr = await QRCode.toDataURL(url, {
-  width: 600, 
-  height: 600, 
-  color: {
-  dark: '#081272', // Цвет  модулей QR-кода
-  light: '#ffffff' // Цвет светлых модулей QR-кода
-  },
-  margin: 10 
-  });
-  res.send(`<img src="${qr}" />`);
-  } catch (err) {
-  res.status(500).send('Ошибка при создании QR-кода.');
-  }
-  });
-app.get('/', async (req, res) => {
-    res.send("добавить  /generate?url=https://vk.com/dmitriy_andreev65")
-  });
+// Установка цветов
+$bg_color = imagecolorallocate($image, 255, 255, 255);
+$text_color = imagecolorallocate($image, 0, 0, 0);
 
-app.listen(3000, () => {
-  console.log(`Сервер запущен на порту 3000`);
-});
-```
-ПОЧТА
-```JavaScript
-const nodemailer = require('nodemailer');
+// Заполнение фона
+imagefill($image, 0, 0, $bg_color);
 
+// Генерация случайного текста для CAPTCHA
+$captcha_text = generateCaptchaText();
 
-const smtpConfig = {
-  host: 'smtp.mail.ru',
-  port: 587,
-  secure: false, // true для SSL, false для других
-  auth: {
-    user: 'dimasandreev071@mail.ru',
-    pass: 'jH6PgYsNgQ6iYz0E3DxV',
-  },
-};
+// Запись значения CAPTCHA в сессию
+$_SESSION["captcha"] = $captcha_text;
 
-//  для отправки почты
-const transporter = nodemailer.createTransport(smtpConfig);
+// Путь к шрифту
+$fontPath = 'Arial.ttf'; // Укажите корректный путь к файлу шрифта
 
-// Параметры 
-const mailOptions = {
-  from: 'dimasandreev071@mail.ru',
-  to: 'dimasandreev019@gmail.com',
-  subject: 'Enotik',
-  text: 'Poloskyn',
- 
-};
+// Рисование текста на изображении
+imagettftext($image, 20, 0, 10, 30, $text_color, $fontPath, $captcha_text);
 
-// Отправляем 
-transporter.sendMail(mailOptions, (error, info) => {
-  if (error) {
-    return console.log('Ошибка отправки письма:', error);
-  }
-  console.log('Письмо успешно отправлено:', info.messageId);
-});
+// Отправка заголовков для изображения
+header('Content-Type: image/png');
+
+// Вывод изображения в поток
+imagepng($image);
+
+// Очистка памяти
+imagedestroy($image);
+?>
 ```
   <h2 style="text-align: center">ВЫВОД</h2>
  PHP — одним из самых популярных серверных языков программирования для веб-разработки. Он используется в следующих сферах:
